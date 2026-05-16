@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:practice/SightSeeingMode/Simulation/services/alertDialog.dart';
+import 'package:practice/features/tour_mode/services/alertDialog.dart';
 import 'package:practice/SightSeeingMode/location_select/models/autoCmodal.dart';
 import 'package:practice/SightSeeingMode/location_select/models/location_info.dart';
 

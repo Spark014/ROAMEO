@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:practice/SightSeeingMode/Simulation/pages/SsmPlay.dart';
-import 'package:practice/SightSeeingMode/Simulation/providers/SightProvider.dart';
-import 'package:practice/SightSeeingMode/Simulation/services/alertDialog.dart';
+import 'package:practice/features/tour_mode/pages/Ssmplay.dart';
+import 'package:practice/features/tour_mode/providers/SightProvider.dart';
+import 'package:practice/features/tour_mode/services/alertDialog.dart';
 import 'package:provider/provider.dart';
 
 //function to iterate through the sightmode and get the source,waypoints and destination

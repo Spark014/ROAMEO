@@ -1,6 +1,6 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:practice/SightSeeingMode/Simulation/pages/SsmPlay.dart';
-import 'package:practice/SightSeeingMode/Simulation/services/Haversine_formula.dart';
+import 'package:practice/features/tour_mode/pages/Ssmplay.dart';
+import 'package:practice/features/tour_mode/services/Haversine_formula.dart';
 
 int findClosestPointIndex(LatLng userLocation, List<LatLng> polyline) {
 

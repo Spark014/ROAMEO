@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:practice/SightSeeingMode/Services/SightGet.dart';
-import 'package:practice/SightSeeingMode/Simulation/pages/Ssmplay.dart';
-import 'package:practice/SightSeeingMode/Simulation/pages/Ssmview.dart';
+import 'package:practice/features/tour_mode/pages/Ssmplay.dart';
+import 'package:practice/features/tour_mode/pages/Ssmview.dart';
 import 'package:practice/SightSeeingMode/Services/SightSearch.dart';
 
 class SightFeed extends StatefulWidget {

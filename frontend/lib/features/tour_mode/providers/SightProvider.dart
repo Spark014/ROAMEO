@@ -1,6 +1,6 @@
 //To store and provide the sight object that's currently running
 import 'package:flutter/material.dart';
-import 'package:practice/SightSeeingMode/Simulation/services/alertDialog.dart';
+import 'package:practice/features/tour_mode/services/alertDialog.dart';
 
 class SightProvider with ChangeNotifier {
   //array to hold sights

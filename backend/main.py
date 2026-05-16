@@ -1,34 +1,50 @@
-from fastapi import FastAPI,HTTPException,Query
-from typing import List
-from Sight_info import Sight
-from firebase_admin import credentials,firestore, initialize_app
-from typing import List
-from user_model import User
-from login_model import LoginRequest
+import os
+import datetime
+
 import bcrypt
 import jwt
-import datetime
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Depends
+from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from firebase_admin import credentials, firestore, initialize_app
+from typing import List
 
-import os
-from firebase_admin import credentials
+from Sight_info import Sight
+from user_model import User
+from login_model import LoginRequest
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current file directory
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 cred_path = os.path.join(BASE_DIR, 'private_key', 'roameo-f3ab0-firebase-adminsdk-ss40k-4cb207715c.json')
 
 cred = credentials.Certificate(cred_path)
-
 initialize_app(cred)
 
-#Firestore client initialization
 db = firestore.client()
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("CORS_ALLOWED_ORIGINS", "*").split(","),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 security = HTTPBearer()
-JWT_SECRET = "CItLOTX5KLDS2VLeitv2n5tsftt5m9SwJNIrQsQsyjc="
+
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET environment variable is required. "
+        "Set it in your shell, .env file, or app.yaml env_variables."
+    )
 
 #temporary storage for sights
 sights_db = []
@@ -212,11 +228,3 @@ async def search_sights(query: str = Query ):
         raise HTTPException(status_code=404, detail="No matching sights found")
 
     return {"sights": matching_sights}
-
-    app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for testing
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)

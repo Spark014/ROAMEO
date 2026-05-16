@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:practice/Home/home_page.dart';
 import 'package:practice/SightSeeingMode/CameraPage/providers/Image_provider.dart';
-import 'package:practice/SightSeeingMode/Simulation/providers/SightProvider.dart';
+import 'package:practice/features/tour_mode/providers/SightProvider.dart';
 import 'package:practice/SightSeeingMode/location_select/pages/autoCwidget.dart';
 import 'package:practice/SightSeeingMode/location_select/services/autoCService.dart';
 import 'package:practice/SightSeeingMode/location_select/providers/selected_place_provider.dart';
