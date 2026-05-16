@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'Register_Completion_Page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:practice/services/cloudinary_uploader.dart';
 
 // Stateful widget to setting up user account
@@ -16,73 +15,42 @@ class SetupAccountPage extends StatefulWidget {
 }
 
 class _SetupAccountPageState extends State<SetupAccountPage> {
-  File? _image; // Stores selected image
-  final ImagePicker _picker = ImagePicker(); // Image picker
-  final FirebaseFirestore _firestore =
-      FirebaseFirestore.instance; // Firebase Firestore
-  final FlutterSecureStorage _secureStorage =
-      const FlutterSecureStorage(); // Secure storage
-  bool _isLoading = false; // Loading state indicator
-  String? userEmail; // Thsi is where user email is stored
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadUserEmail(); //  Load user email
-  }
-
-  /// Load user email from secure storage
-  Future<void> _loadUserEmail() async {
-    final String? email =
-        await _secureStorage.read(key: 'user_email'); // Fetch user email
-    debugPrint("Stored user email: $email");
-    setState(() {
-      userEmail = email;
-    });
-
-    if (email == null) {
-      _showSnackBar('User email not found. Please log in again.');
-    }
-  }
-
-  /// Pick image from gallery
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        _image = File(pickedFile.path); // Store the selected image
+        _image = File(pickedFile.path);
       });
     }
   }
 
   Future<void> _uploadImage() async {
     if (_image == null) {
-      _showSnackBar(
-          'Please select an image'); // Error message to if image is not selected
-      return;
-    }
-    if (userEmail == null) {
-      _showSnackBar('Error: User email not found. Please log in again.');
+      _showSnackBar('Please select an image');
       return;
     }
 
-    setState(() => _isLoading = true); // Loading indicator
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _showSnackBar('Not signed in. Please log in again.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
       final String downloadURL =
           await CloudinaryUploader.uploadImage(_image!);
 
-      DocumentReference userDoc = _firestore.collection('users').doc(userEmail);
-      DocumentSnapshot docSnapshot = await userDoc.get();
-
-      if (docSnapshot.exists) {
-        await userDoc
-            .update({'profileImage': downloadURL}); // Update profile image URL
-      } else {
-        await userDoc.set({
-          'profileImage': downloadURL
-        }); //  Create new user document(with profile image)
-      }
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .set({'profileImage': downloadURL}, SetOptions(merge: true));
 
       // Navigate to Registration Completion Page
       Navigator.pushReplacement(

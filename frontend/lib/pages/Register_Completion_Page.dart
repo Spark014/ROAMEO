@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../Home/home_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -12,7 +10,6 @@ class RegistrationCompletePage extends StatefulWidget {
 }
 
 class _RegistrationCompletePageState extends State<RegistrationCompletePage> {
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String? _username;
@@ -25,38 +22,22 @@ class _RegistrationCompletePageState extends State<RegistrationCompletePage> {
     _fetchUserDataFuture = _fetchUserData();
   }
 
-  // Fetch user data from API and Firestore
   Future<void> _fetchUserData() async {
     try {
-      final String? token = await _secureStorage.read(key: 'jwt_token');
-      if (token == null) throw Exception('No token found');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('No authenticated user');
 
-      final response = await http.get(
-        Uri.parse('http://192.168.100.14:8000/user'),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token"
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-        final userEmail = responseBody["user"]["email"];
-
-        // Fetch user data from Firestore
-        final DocumentSnapshot userDoc =
-            await _firestore.collection('users').doc(userEmail).get();
-        if (!userDoc.exists)
-          throw Exception('User data not found in Firestore');
-
-        // Update state with fetched data
-        setState(() {
-          _username = responseBody["user"]["username"];
-          _profileImageUrl = userDoc['profileImage'];
-        });
-      } else {
-        throw Exception('Failed to fetch user data');
+      final DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(user.uid).get();
+      if (!userDoc.exists) {
+        throw Exception('User data not found in Firestore');
       }
+
+      final data = userDoc.data() as Map<String, dynamic>;
+      setState(() {
+        _username = data['username'] as String?;
+        _profileImageUrl = data['profileImage'] as String?;
+      });
     } catch (e) {
       _showSnackBar('Error fetching user data: $e');
     }

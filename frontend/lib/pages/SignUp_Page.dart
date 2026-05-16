@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../Home/home_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'Login_PageUpdated.dart';
-import 'open_page.dart';
 import './Account_Setup_Page.dart';
 
 // SignUp pagescreen
@@ -24,56 +21,42 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
-  final storage = FlutterSecureStorage();
 
-  /// Handles sign-up process
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    final url =
-        Uri.parse('http://192.168.100.14:8000/signup'); // API endpoint URL
-
-    // Prepare request body
-    final requestBody = jsonEncode({
-      "username": _usernameController.text,
-      "email": _emailController.text,
-      "dob": _dobController.text,
-      "password": _passwordController.text,
-    });
-
     try {
-      // Send POST Request to API
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: requestBody,
+      final credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
 
-      final responseBody = jsonDecode(response.body); // Decode JSON body
+      final uid = credential.user!.uid;
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'username': _usernameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'dob': _dobController.text,
+      });
 
-      setState(() => _isLoading = false); // Hide loading indicator
+      setState(() => _isLoading = false);
 
-      if (response.statusCode == 200) {
-        // Store authentication token secured
-        await storage.write(key: 'jwt_token', value: responseBody["token"]);
-        await storage.write(key: 'user_email', value: _emailController.text);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signup successful! Please log in.')),
-        );
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => SetupAccountPage()));
-      } else {
-        final errorMessage = responseBody["detail"] ?? "Signup failed!";
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("$errorMessage")));
-      }
-    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Signup successful! Please log in.')),
+      );
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => SetupAccountPage()));
+    } on FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Server unreachable')),
+        SnackBar(content: Text(e.message ?? 'Signup failed')),
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }

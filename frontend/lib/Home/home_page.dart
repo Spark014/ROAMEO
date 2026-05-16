@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:practice/SightSeeingMode/Sightseeing_mode_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart'; // Add this import
+import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,7 +14,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isPillSwitchOn = false;
   int _selectedIndex = 0;
-  final storage = FlutterSecureStorage();
   Map<String, dynamic>? userData;
   String? profileImageUrl;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -29,38 +26,23 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchUserData() async {
     try {
-      final String? token = await storage.read(key: 'jwt_token');
-      if (token == null) {
-        print("No token found");
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print("No authenticated user");
         return;
       }
 
-      final url = Uri.parse('http://192.168.100.14:8000/user');
-      final response = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      );
+      final DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(user.uid).get();
 
-      if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-        final userEmail = responseBody["user"]["email"]; // Get user email
-
-        // Fetch profile image URL from Firestore
-        DocumentSnapshot userDoc =
-            await _firestore.collection('users').doc(userEmail).get();
-        if (userDoc.exists) {
-          setState(() {
-            userData = responseBody["user"];
-            profileImageUrl = userDoc['profileImage']; // Fetch the image URL
-          });
-        } else {
-          print("User data not found in Firestore");
-        }
+      if (userDoc.exists) {
+        final data = userDoc.data() as Map<String, dynamic>;
+        setState(() {
+          userData = data;
+          profileImageUrl = data['profileImage'] as String?;
+        });
       } else {
-        print("Failed to fetch user data: ${response.statusCode}");
+        print("User data not found in Firestore");
       }
     } catch (error) {
       print("Error fetching user data: $error");

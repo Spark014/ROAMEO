@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import './SignUp_Page.dart';
 import '../Home/home_page.dart';
 
@@ -20,70 +18,39 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Loading state
   bool _isLoading = false;
-  final storage = FlutterSecureStorage(); // Store authentication token
 
-  // User login process
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
-      return; // Stops login if fields are invalid
+      return;
     }
 
-    setState(() => _isLoading = true); // Loading animation
-
-    final url =
-        Uri.parse('http://192.168.100.14:8000/login'); // API endpoint for login
-    final requestBody = {
-      "email": _emailController.text.trim(),
-      "password": _passwordController.text,
-    }; // Request body for login
+    setState(() => _isLoading = true);
 
     try {
-      // HTTP POST request to login endpoint
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(requestBody),
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
 
-      // Decode JSON body
-      final responseBody = Map<String, dynamic>.from(jsonDecode(response.body));
-
-      if (response.statusCode == 200) {
-        // Store JWT token(secured)
-        await storage.write(key: 'jwt_token', value: responseBody["token"]);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login successful!')),
-        ); // Success message
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomePage()),
-        ); // Navigate to home
-      } else if (response.statusCode == 401) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Token expired. Please sign up again.')),
-        ); // Handle token expiration
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => SignUpPage()),
-        ); // Redirect to signup
-      } else {
-        // Invalid login handling
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(responseBody["detail"] ?? "Invalid credentials")),
-        );
-      }
-    } catch (_) {
-      // Handle connection errors
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: Unable to connect to the server')),
+        SnackBar(content: Text('Login successful!')),
+      );
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Invalid credentials')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     }
 
-    setState(() => _isLoading = false); // Stop loading animation
+    setState(() => _isLoading = false);
   }
 
   @override
