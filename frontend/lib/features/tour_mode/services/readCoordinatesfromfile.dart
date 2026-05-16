@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 // Function to read coordinates from a file and create LatLng objects
 Future<List<LatLng>> readCoordinatesFromFile(String filePath) async {

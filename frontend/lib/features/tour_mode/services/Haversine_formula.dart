@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:google_maps_flutter_platform_interface/src/types/location.dart';
+import 'package:latlong2/latlong.dart';
 
 
 //Haversine calcualtion to calculate the distance (for offline purposes)

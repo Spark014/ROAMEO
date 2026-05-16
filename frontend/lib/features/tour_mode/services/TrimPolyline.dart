@@ -1,4 +1,4 @@
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:practice/features/tour_mode/pages/Ssmplay.dart';
 import 'package:practice/features/tour_mode/services/Haversine_formula.dart';
 

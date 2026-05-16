@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:practice/SightSeeingMode/Ella details/Ella_route.dart';
 
 class MapScreen extends StatefulWidget {
@@ -8,45 +9,37 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late GoogleMapController mapController;
-
-  // Define the initial camera position
-  final CameraPosition _initialCameraPosition = CameraPosition(
-    target: EllaroutePoints.first, // Use the first point as the initial target
-    zoom: 14,
-  );
-
-  // Define the polyline
-  Set<Polyline> _polylines = {};
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize the polyline
-    _polylines.add(
-      Polyline(
-        polylineId: PolylineId('route'),
-        points: EllaroutePoints,
-        color: Colors.blue,
-        width: 5,
-      ),
-    );
-  }
+  final MapController _mapController = MapController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Google Maps with Polyline'),
+        title: const Text('Route Preview'),
       ),
-      body: GoogleMap(
-        initialCameraPosition: _initialCameraPosition,
-        onMapCreated: (GoogleMapController controller) {
-          setState(() {
-            mapController = controller;
-          });
-        },
-        polylines: _polylines, // Add the polyline to the map
+      body: FlutterMap(
+        mapController: _mapController,
+        options: MapOptions(
+          initialCenter: EllaroutePoints.first,
+          initialZoom: 14,
+        ),
+        children: [
+          TileLayer(
+            urlTemplate:
+                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+            subdomains: const ['a', 'b', 'c', 'd'],
+            userAgentPackageName: 'com.example.practice',
+          ),
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: EllaroutePoints,
+                color: Colors.blue,
+                strokeWidth: 5,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

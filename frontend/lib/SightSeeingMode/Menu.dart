@@ -13,7 +13,7 @@ import 'package:practice/SightSeeingMode/location_select/pages/autoCwidget.dart'
 import 'package:practice/SightSeeingMode/CameraPage/providers/Image_provider.dart';
 import 'package:practice/SightSeeingMode/location_select/providers/selected_place_provider.dart';
 import 'package:practice/SightSeeingMode/models/sight.dart';
-import 'package:google_maps_flutter_platform_interface/src/types/location.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
