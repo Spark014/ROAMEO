@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:io';
 import 'Register_Completion_Page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:practice/services/cloudinary_uploader.dart';
 
 // Stateful widget to setting up user account
 class SetupAccountPage extends StatefulWidget {
@@ -18,7 +18,6 @@ class SetupAccountPage extends StatefulWidget {
 class _SetupAccountPageState extends State<SetupAccountPage> {
   File? _image; // Stores selected image
   final ImagePicker _picker = ImagePicker(); // Image picker
-  final FirebaseStorage _storage = FirebaseStorage.instance; // Firebase storage
   final FirebaseFirestore _firestore =
       FirebaseFirestore.instance; // Firebase Firestore
   final FlutterSecureStorage _secureStorage =
@@ -56,7 +55,6 @@ class _SetupAccountPageState extends State<SetupAccountPage> {
     }
   }
 
-  /// Upload image to Firebase Storage and update Firestore
   Future<void> _uploadImage() async {
     if (_image == null) {
       _showSnackBar(
@@ -71,13 +69,8 @@ class _SetupAccountPageState extends State<SetupAccountPage> {
     setState(() => _isLoading = true); // Loading indicator
 
     try {
-      final String fileName = 'profile_$userEmail.jpg'; // Set image file name
-      final Reference storageRef = _storage
-          .ref()
-          .child('profile_images/$fileName'); // Firebase storage reference
-      await storageRef.putFile(_image!); // Upload image to firebase
       final String downloadURL =
-          await storageRef.getDownloadURL(); // Get uploaded image URL
+          await CloudinaryUploader.uploadImage(_image!);
 
       DocumentReference userDoc = _firestore.collection('users').doc(userEmail);
       DocumentSnapshot docSnapshot = await userDoc.get();

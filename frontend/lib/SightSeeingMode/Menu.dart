@@ -15,7 +15,7 @@ import 'package:practice/SightSeeingMode/location_select/providers/selected_plac
 import 'package:practice/SightSeeingMode/models/sight.dart';
 import 'package:google_maps_flutter_platform_interface/src/types/location.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:practice/services/cloudinary_uploader.dart';
 import 'dart:io';
 
 //Make sure to import dart:io for File handling
@@ -36,12 +36,8 @@ class _SightMenuState extends State<SightMenu> {
 
 
   Future<String> uploadImage(String filePath) async {
-    File file = File(filePath);
     try {
-      String fileName = filePath.split('/').last;
-      Reference ref = FirebaseStorage.instance.ref().child('images/$fileName');
-      await ref.putFile(file);
-      return await ref.getDownloadURL();
+      return await CloudinaryUploader.uploadImage(File(filePath));
     } catch (e) {
       print("Error uploading image: $e");
       //Return local path if upload fails
